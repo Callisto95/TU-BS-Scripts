@@ -130,7 +130,12 @@ def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[i
 		)
 	)
 	
-	return saved_si[iteration], saved_ti[iteration]
+	x: int = saved_si[iteration]
+	y: int = saved_ti[iteration]
+	
+	print(f"verifying: {x}*{num1}{"+" if y >= 0 else ""}{y}*{num2}={x*num1+y*num2}")
+	
+	return x, y
 
 
 @dataclass
