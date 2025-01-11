@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import builtins
 import sys
 from dataclasses import dataclass
 from functools import cache
@@ -9,6 +10,21 @@ from tabulate import tabulate
 
 NO_DATA: str = "-"
 TABLE_FORMAT: str = "presto"
+
+
+# disabling printing is significantly faster
+class Printer:
+	enabled: bool = True
+	
+	@classmethod
+	def print(cls, *args):
+		if cls.enabled:
+			cls.force_print(*args)
+	
+	force_print = builtins.print
+
+
+print = Printer.print
 
 
 def n_alignment(n: int, alignment: str) -> list[str]:
@@ -82,14 +98,13 @@ def ggt(num1: int, num2: int, maximum_iterations: int = 100) -> int:
 	return r2_save
 
 
-def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[int, int]:
+def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[int, int, int]:
 	saved_ri: list[int] = [num1, num2]
 	saved_qi: list[int | str] = [NO_DATA]
 	saved_si: list[int | str] = [1, 0]
 	saved_ti: list[int | str] = [0, 1]
 	
 	current_r: int = num2
-	current_q: int = -1  # set anyway, ignore -1
 	
 	# no iteration 0 is done
 	iteration: int = 0
@@ -132,10 +147,11 @@ def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[i
 	
 	x: int = saved_si[iteration]
 	y: int = saved_ti[iteration]
+	result: int = x * num1 + y * num2
 	
-	print(f"verifying: {x}*{num1}{"+" if y >= 0 else ""}{y}*{num2}={x*num1+y*num2}")
+	print(f"verifying: {x}*{num1}{"+" if y >= 0 else ""}{y}*{num2}={result}")
 	
-	return x, y
+	return x, y, result
 
 
 @dataclass
