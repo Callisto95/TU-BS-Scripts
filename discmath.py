@@ -177,7 +177,7 @@ def convert_if_possible(input_: list[str]) -> list[str | int | float]:
 	return output
 
 
-def main() -> None:
+def main() -> bool:
 	args = sys.argv[1:]
 	if len(args) > 0:
 		function_name = args[0].lower()
@@ -206,11 +206,10 @@ def main() -> None:
 				if result is not None:
 					print("result:", result)
 		
-		if not found_function:
-			print("cannot find function, available are:")
-			for f in FUNCTIONS:
-				print(f"\t{f.name} (args: {f.min_args})")
+		return found_function
 
 
-if __name__ == '__main__':
-	main()
+if __name__ == '__main__' and not main():
+	print("cannot find function, available are:")
+	for f in FUNCTIONS:
+		print(f"\t{f.name} (args: {f.min_args} to {f.max_args})")
