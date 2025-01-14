@@ -99,6 +99,12 @@ def ggt(num1: int, num2: int, maximum_iterations: int = 100) -> int:
 
 
 def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[int, int, int]:
+	if num1 < 0 or num2 < 0:
+		print("using absolute values instead of negatives")
+	
+	num1 = abs(num1)
+	num2 = abs(num2)
+	
 	saved_ri: list[int] = [num1, num2]
 	saved_qi: list[int | str] = [NO_DATA]
 	saved_si: list[int | str] = [1, 0]
@@ -186,8 +192,15 @@ def convert_if_possible(input_: list[str]) -> list[str | int | float]:
 		except ValueError:
 			return False
 	
+	def is_int(s: str) -> bool:
+		try:
+			int(s)
+			return True
+		except ValueError:
+			return False
+	
 	for x in input_:
-		if x.isdigit():
+		if is_int(x):
 			output.append(int(x))
 		elif is_float(x):
 			output.append(float(x))
