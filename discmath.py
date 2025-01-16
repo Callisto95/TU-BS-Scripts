@@ -62,7 +62,7 @@ def collatz_range(begin: int, end: int = -1) -> None:
 		print(i, ":", *vals)
 
 
-def ggt(num1: int, num2: int, maximum_iterations: int = 100) -> int:
+def ggt(num1: int, num2: int, maximum_iterations: int = 100, print_multiplications: bool = False) -> int:
 	data: list[list[str | int]] = []
 	
 	iteration: int = 1
@@ -85,7 +85,10 @@ def ggt(num1: int, num2: int, maximum_iterations: int = 100) -> int:
 		for i in range(2, factor + 2):
 			multiplications.append(f"{i}:{r1 * i}")
 		
-		data.append([iteration, f"q{iteration}={factor}", f"r{iteration + 2}={r2}", ", ".join(multiplications)])
+		data.append([iteration, f"q{iteration}={factor}", f"r{iteration + 2}={r2}"])
+		
+		if print_multiplications:
+			data[-1].append(", ".join(multiplications))
 		
 		r0 = r1
 		r1 = r2
@@ -94,8 +97,17 @@ def ggt(num1: int, num2: int, maximum_iterations: int = 100) -> int:
 			print("max iteration depth reached")
 			exit(1)
 	
-	print(tabulate(data, headers=["iter", "factor", "rest", "multiplications"], tablefmt=TABLE_FORMAT))
+	headers: list[str] = ["iter", "factor", "rest"]
+	
+	if print_multiplications:
+		headers.append("multiplications")
+	
+	print(tabulate(data, headers=headers, tablefmt=TABLE_FORMAT))
 	return r2_save
+
+
+def ggt_print_multi(num1: int, num2: int, maximum_iterations: int = 100) -> int:
+	return ggt(num1, num2, maximum_iterations, True)
 
 
 def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[int, int, int]:
@@ -275,6 +287,7 @@ class Function:
 
 FUNCTIONS: list[Function] = [
 	Function("ggt", ggt, 2, 3),
+	Function("ggt-multi", ggt_print_multi, 2, 3),
 	Function("ggt-ext", ggt_extended, 2),
 	Function("collatz", collatz_range, 1, 2),
 	Function("prime-comp", prime_decomposition, 1),
