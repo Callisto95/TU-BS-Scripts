@@ -17,9 +17,9 @@ class Printer:
 	enabled: bool = True
 	
 	@classmethod
-	def print(cls, *args):
+	def print(cls, *args, **kwargs):
 		if cls.enabled:
-			cls.force_print(*args)
+			cls.force_print(*args, **kwargs)
 	
 	force_print = builtins.print
 
@@ -230,6 +230,14 @@ def get_prime(n: int) -> int:
 	return PRIME_CACHE[n]
 
 
+def is_prime(number: int) -> bool:
+	for n in range(3, number // 2, 2):
+		if number % n == 0:
+			return False
+	
+	return True
+
+
 def prime_decomposition(number: int) -> dict[int, int]:
 	result: dict[int, int] = {}
 	
@@ -244,6 +252,11 @@ def prime_decomposition(number: int) -> dict[int, int]:
 			result[prime] += 1
 		else:
 			result[prime] = 1
+		
+		# significantly faster for big primes
+		if is_prime(number):
+			result[number] = 1
+			break
 	
 	return result
 
@@ -287,7 +300,7 @@ FUNCTIONS: list[Function] = [
 	Function("ggt-multi", ggt, 2, 3, default_kwargs={"print_multiplications": True}),
 	Function("ggt-ext", ggt_extended, 2),
 	Function("collatz", collatz_range, 1, 2),
-	Function("prime-comp", prime_decomposition, 1),
+	Function("prime-decomp", prime_decomposition, 1),
 	Function("kgv", kgv, 2, 100)
 ]
 
