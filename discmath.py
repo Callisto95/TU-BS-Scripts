@@ -4,7 +4,7 @@ import builtins
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import Any, Callable
+from typing import Any, Callable, Generator
 
 from tabulate import tabulate
 
@@ -160,6 +160,104 @@ def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[i
 	return x, y, result
 
 
+# Sieve of Eratosthenes
+# Code by David Eppstein, UC Irvine, 28 Feb 2002
+# http://code.activestate.com/recipes/117119/
+def gen_primes():
+	""" Generate an infinite sequence of prime numbers.
+	"""
+	# Maps composites to primes witnessing their compositeness.
+	# This is memory efficient, as the sieve is not "run forward"
+	# indefinitely, but only as long as required by the current
+	# number being tested.
+	#
+	D = { }
+	
+	# The running integer that's checked for primeness
+	q = 2
+	
+	while True:
+		if q not in D:
+			# q is a new prime.
+			# Yield it and mark its first multiple that isn't
+			# already marked in previous iterations
+			#
+			yield q
+			D[q * q] = [q]
+		else:
+			# q is composite. D[q] is the list of primes that
+			# divide it. Since we've reached q, we no longer
+			# need it in the map, but we'll mark the next
+			# multiples of its witnesses to prepare for larger
+			# numbers
+			#
+			for p in D[q]:
+				D.setdefault(p + q, []).append(p)
+			del D[q]
+		
+		q += 1
+
+
+PRIME_CACHE: list[int] = []
+
+
+def get_prime(n: int) -> int:
+	# the first prime is the 0-th element in the cache
+	n -= 1
+	
+	cached_size: int = len(PRIME_CACHE)
+	
+	if n < cached_size:
+		return PRIME_CACHE[n]
+	
+	generator: Generator[int, Any, None] = gen_primes()
+	for i in range(0, n + 1):
+		prime = next(generator)
+		
+		if i < cached_size:
+			continue
+		
+		PRIME_CACHE.append(prime)
+	
+	return PRIME_CACHE[n]
+
+
+def prime_decomposition(number: int) -> dict[int, int]:
+	result: dict[int, int] = {}
+	
+	while number > 1:
+		i = 1
+		while number % (prime := get_prime(i)) != 0:
+			i += 1
+		
+		number = number // prime
+		
+		if prime in result:
+			result[prime] += 1
+		else:
+			result[prime] = 1
+	
+	return result
+
+
+def kgv(*numbers: int) -> int:
+	all_primes: dict[int, int] = {}
+	for number in numbers:
+		number_primes: dict[int, int] = prime_decomposition(number)
+		
+		# merge prime factors
+		for prime in number_primes:
+			if prime not in all_primes or all_primes[prime] < number_primes[prime]:
+				all_primes[prime] = number_primes[prime]
+	
+	# multiply everything together
+	prime_sum: int = 1
+	for prime, factor in all_primes.items():
+		prime_sum *= pow(prime, factor)
+	
+	return prime_sum
+				
+
 @dataclass
 class Function:
 	name: str
@@ -177,8 +275,10 @@ class Function:
 
 FUNCTIONS: list[Function] = [
 	Function("ggt", ggt, 2, 3),
-	Function("ggt_ext", ggt_extended, 2),
-	Function("collatz_range", collatz_range, 1, 2)
+	Function("ggt-ext", ggt_extended, 2),
+	Function("collatz", collatz_range, 1, 2),
+	Function("prime-comp", prime_decomposition, 1),
+	Function("kgv", kgv, 2, 100)
 ]
 
 
