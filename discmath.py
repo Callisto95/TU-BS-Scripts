@@ -2,7 +2,7 @@
 
 import builtins
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from typing import Any, Callable, Generator
 
@@ -104,10 +104,6 @@ def ggt(num1: int, num2: int, maximum_iterations: int = 100, print_multiplicatio
 	
 	print(tabulate(data, headers=headers, tablefmt=TABLE_FORMAT))
 	return r2_save
-
-
-def ggt_print_multi(num1: int, num2: int, maximum_iterations: int = 100) -> int:
-	return ggt(num1, num2, maximum_iterations, True)
 
 
 def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[int, int, int]:
@@ -275,19 +271,20 @@ class Function:
 	name: str
 	method: Callable
 	min_args: int
-	max_args: int = None  # NOSONAR
+	max_args: int = -1
+	default_kwargs: dict[str, Any] = field(default_factory=dict)
 	
 	def __post_init__(self):
-		if self.max_args is None:
+		if self.max_args == -1:
 			self.max_args = self.min_args
 	
-	def call(self, args: list[Any]) -> Any:
-		return self.method(*args)
+	def call(self, *args, **kwargs) -> Any:
+		return self.method(*args, **kwargs)
 
 
 FUNCTIONS: list[Function] = [
 	Function("ggt", ggt, 2, 3),
-	Function("ggt-multi", ggt_print_multi, 2, 3),
+	Function("ggt-multi", ggt, 2, 3, default_kwargs={"print_multiplications": True}),
 	Function("ggt-ext", ggt_extended, 2),
 	Function("collatz", collatz_range, 1, 2),
 	Function("prime-comp", prime_decomposition, 1),
@@ -348,7 +345,7 @@ def main() -> bool:
 					)
 					exit(1)
 				
-				result: Any = function.call(new_function_args)
+				result: Any = function.call(*new_function_args, **function.default_kwargs)
 				
 				if result is not None:
 					print("result:", result)
