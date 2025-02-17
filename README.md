@@ -4,6 +4,10 @@
 
 Scripts for various TU-BS subjects. Expect random functions for random tasks.
 
+## Requirements
+
+At least Python 3.12 is required.
+
 [cc-by]: http://creativecommons.org/licenses/by/4.0/
 [cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
 
