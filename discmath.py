@@ -97,7 +97,7 @@ def ggt(num1: int, num2: int, maximum_iterations: int = 100, print_multiplicatio
 			print("max iteration depth reached")
 			exit(1)
 	
-	headers: list[str] = ["iter", "factor", "rest"]
+	headers: list[str] = ["i", "factor", "rest"]
 	
 	if print_multiplications:
 		headers.append("multiplications")
@@ -153,7 +153,7 @@ def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[i
 	print(
 		tabulate(
 			data,
-			headers=["iter", "ri", "qi", "si", "ti"],
+			headers=["i", "ri", "qi", "si", "ti"],
 			tablefmt=TABLE_FORMAT,
 			colalign=n_alignment(5, "right")
 		)
@@ -347,7 +347,7 @@ def main() -> bool:
 			if function.name == function_name:
 				found_function = True
 				
-				if len(new_function_args) < function.min_args or len(new_function_args) > function.max_args:
+				if not (function.min_args <= len(new_function_args) <= function.max_args):
 					print(
 						"args are bad, expected",
 						function.min_args,
@@ -364,6 +364,7 @@ def main() -> bool:
 					print("result:", result)
 		
 		return found_function
+	return False
 
 
 if __name__ == '__main__' and not main():
