@@ -27,6 +27,13 @@ class Printer:
 print = Printer.print
 
 
+def indexed_print(*args, unit: str | None = None):
+	if unit is None:
+		print(", ".join([f"{i}: {entry}" for i, entry in enumerate(args)]))
+	else:
+		print(", ".join([f"{unit}{i}: {entry}" for i, entry in enumerate(args)]))
+
+
 def n_alignment(n: int, alignment: str) -> list[str]:
 	l: list[str] = []
 	for _ in range(n):
@@ -277,7 +284,63 @@ def kgv(*numbers: int) -> int:
 		prime_sum *= pow(prime, factor)
 	
 	return prime_sum
-				
+
+
+def chinese_remainder(*remainder_mod: str) -> int:
+	length: int = len(remainder_mod)
+	
+	as_: list[int] = []
+	ms: list[int] = []
+	
+	big_m: int = 1
+	for r in remainder_mod:
+		remainder, mod = r.split(":")
+		
+		remainder = int(remainder)
+		mod = int(mod)
+		
+		as_.append(remainder)
+		ms.append(mod)
+		
+		big_m *= mod
+	
+	indexed_print(*as_, unit="a")
+	indexed_print(*ms, unit="m")
+	print("M:", big_m)
+	
+	big_ms: list[int] = []
+	
+	for i in range(length):
+		m: int = 1
+		for j in range(length):
+			if i == j:
+				continue
+			m *= ms[j]
+		big_ms.append(m)
+	
+	indexed_print(*big_ms, unit="M")
+	
+	ys: list[int] = []
+	
+	Printer.enabled = False
+	
+	for i in range(length):
+		s, _, _ = ggt_extended(big_ms[i], ms[i])
+		ys.append(s % ms[i])
+	
+	Printer.enabled = True
+	
+	indexed_print(*ys, unit="y")
+	
+	sum_: int = 0
+	for i in range(length):
+		sum_ += as_[i] * big_ms[i] * ys[i]
+	
+	print("sum:", sum_)
+	sum_ %= big_m
+	
+	return sum_
+	
 
 @dataclass
 class Function:
@@ -301,7 +364,8 @@ FUNCTIONS: list[Function] = [
 	Function("ggt-ext", ggt_extended, 2),
 	Function("collatz", collatz_range, 1, 2),
 	Function("prime-decomp", prime_decomposition, 1),
-	Function("kgv", kgv, 2, 100)
+	Function("kgv", kgv, 2, 100),
+	Function("chin", chinese_remainder, 3, 100)
 ]
 
 
