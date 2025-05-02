@@ -8,6 +8,8 @@ from typing import Any, Callable, Generator
 
 from tabulate import tabulate
 
+from tu_bs_scripts.quick_cli import Function, quick_run
+
 NO_DATA: str = "-"
 TABLE_FORMAT: str = "presto"
 
@@ -342,96 +344,15 @@ def chinese_remainder(*remainder_mod: str) -> int:
 	return sum_
 	
 
-@dataclass
-class Function:
-	name: str
-	method: Callable
-	min_args: int
-	max_args: int = -1
-	default_kwargs: dict[str, Any] = field(default_factory=dict)
-	
-	def __post_init__(self):
-		if self.max_args == -1:
-			self.max_args = self.min_args
-	
-	def call(self, *args, **kwargs) -> Any:
-		return self.method(*args, **kwargs)
-
-
-FUNCTIONS: list[Function] = [
+functions: list[Function] = [
 	Function("ggt", ggt, 2, 3),
 	Function("ggt-multi", ggt, 2, 3, default_kwargs={"print_multiplications": True}),
 	Function("ggt-ext", ggt_extended, 2),
 	Function("collatz", collatz_range, 1, 2),
 	Function("prime-decomp", prime_decomposition, 1),
-	Function("kgv", kgv, 2, 100),
-	Function("chin", chinese_remainder, 3, 100)
+	Function("kgv", kgv, 2, Function.MAX_ARG_COUNT),
+	Function("chin", chinese_remainder, 3, Function.MAX_ARG_COUNT)
 ]
 
-
-def convert_if_possible(input_: list[str]) -> list[str | int | float]:
-	output: list[str | int | float] = []
-	
-	def is_float(s: str) -> bool:
-		try:
-			float(s)
-			return True
-		except ValueError:
-			return False
-	
-	def is_int(s: str) -> bool:
-		try:
-			int(s)
-			return True
-		except ValueError:
-			return False
-	
-	for x in input_:
-		if is_int(x):
-			output.append(int(x))
-		elif is_float(x):
-			output.append(float(x))
-		
-		else:
-			output.append(x)
-	
-	return output
-
-
-def main() -> bool:
-	args = sys.argv[1:]
-	if len(args) > 0:
-		function_name = args[0].lower()
-		function_args = args[1:]
-		
-		new_function_args = convert_if_possible(function_args)
-		
-		found_function: bool = False
-		for function in FUNCTIONS:
-			if function.name == function_name:
-				found_function = True
-				
-				if not (function.min_args <= len(new_function_args) <= function.max_args):
-					print(
-						"args are bad, expected",
-						function.min_args,
-						"to",
-						function.max_args,
-						"got",
-						len(new_function_args)
-					)
-					exit(1)
-				
-				result: Any = function.call(*new_function_args, **function.default_kwargs)
-				
-				if result is not None:
-					print("result:", result)
-		
-		return found_function
-	return False
-
-
-if __name__ == '__main__' and not main():
-	print("cannot find function, available are:")
-	for f in FUNCTIONS:
-		print(f"\t{f.name} (args: {f.min_args} to {f.max_args})")
+if __name__ == '__main__':
+	quick_run(functions)
