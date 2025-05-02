@@ -1,8 +1,9 @@
-MAX_RANGE = 100000
+from tu_bs_scripts.stochastik import multinomialkoeffizient
 
-for x in range(-MAX_RANGE, MAX_RANGE):
-	for y in range(-MAX_RANGE, MAX_RANGE):
-		if 1 == 2000 * x + 122 * y:
-			print(x, y)
-			exit()
-	
+print(
+	(
+		multinomialkoeffizient(28, 9, 9, 9, 1) * multinomialkoeffizient(4, 1, 1, 1, 1)
+		+
+		multinomialkoeffizient(28, 8, 9, 9, 2) * multinomialkoeffizient(4, 2, 1, 1, 0) * 3
+	) / multinomialkoeffizient(32, 10, 10, 10, 2)
+)
