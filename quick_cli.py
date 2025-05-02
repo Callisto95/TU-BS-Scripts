@@ -83,9 +83,12 @@ def run_function(functions: list[Function], function_name: str, *args: str) -> b
 
 
 def quick_run(functions: list[Function]) -> None:
-	if run_function(functions, sys.argv[0], *sys.argv[1:]):
+	function_name: str = sys.argv[1]
+	function_args: list[str] = sys.argv[2:]
+	
+	if run_function(functions, function_name, *function_args):
 		return
 	
-	print("cannot find function, available are:")
+	print(f"cannot find function '{function_name}', available are:")
 	for f in functions:
 		print(f"\t{f.name} (args: {f.min_args} to {f.max_args})")
