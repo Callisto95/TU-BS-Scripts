@@ -1,10 +1,8 @@
 #!/usr/bin/python
 
 import builtins
-import sys
-from dataclasses import dataclass, field
 from functools import cache
-from typing import Any, Callable, Generator
+from typing import Any, Generator
 
 from tabulate import tabulate
 
