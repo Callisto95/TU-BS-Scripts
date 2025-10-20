@@ -83,7 +83,7 @@ def run_function(functions: list[Function], function_name: str, *args: str) -> b
 
 
 def quick_run(functions: list[Function]) -> None:
-	function_name: str = sys.argv[1]
+	function_name: str = sys.argv[1] if len(sys.argv) > 1 else ""
 	function_args: list[str] = sys.argv[2:]
 	
 	if run_function(functions, function_name, *function_args):
