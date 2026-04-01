@@ -1,94 +1,160 @@
+import inspect
 import sys
 from dataclasses import dataclass, field
+from inspect import Parameter, Signature
 from typing import Any, Callable
 
 
 @dataclass
 class Function:
-	name: str
-	method: Callable
-	min_args: int
-	max_args: int = -1
-	default_kwargs: dict[str, Any] = field(default_factory=dict)
-	
-	MAX_ARG_COUNT: int = 100
-	
-	def __post_init__(self):
-		if self.max_args == -1:
-			self.max_args = self.min_args
-	
-	def call(self, *args, **kwargs) -> Any:
-		return self.method(*args, **kwargs)
+    method: Callable
+    min_args: int
+    max_args: int = -1
+    default_kwargs: dict[str, Any] = field(default_factory=dict)
+    
+    MAX_ARG_COUNT: int = field(default=100, repr=False, init=False, hash=False)
+    
+    def __post_init__(self):
+        if self.max_args == -1:
+            self.max_args = self.min_args
 
 
 def convert_if_possible(input_: list[str]) -> list[str | int | float]:
-	output: list[str | int | float] = []
-	
-	def is_float(s: str) -> bool:
-		try:
-			float(s)
-			return True
-		except ValueError:
-			return False
-	
-	def is_int(s: str) -> bool:
-		try:
-			int(s)
-			return True
-		except ValueError:
-			return False
-	
-	for x in input_:
-		if is_int(x):
-			output.append(int(x))
-		elif is_float(x):
-			output.append(float(x))
-		
-		else:
-			output.append(x)
-	
-	return output
+    output: list[str | int | float] = []
+    
+    def is_float(s: str) -> bool:
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+    
+    def is_int(s: str) -> bool:
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+    
+    for x in input_:
+        if is_int(x):
+            output.append(int(x))
+        elif is_float(x):
+            output.append(float(x))
+        
+        else:
+            output.append(x)
+    
+    return output
 
 
-def run_function(functions: list[Function], function_name: str, *args: str) -> bool:
-	if len(args) > 0:
-		function_name: str = function_name.lower()
-		function_args: list[str] = list(args)
-		
-		new_function_args = convert_if_possible(function_args)
-		
-		found_function: bool = False
-		for function in functions:
-			if function.name == function_name:
-				found_function = True
-				
-				if not (function.min_args <= len(new_function_args) <= function.max_args):
-					print(
-						"args are bad, expected",
-						function.min_args,
-						"to",
-						function.max_args,
-						"got",
-						len(new_function_args)
-					)
-					exit(1)
-				
-				result: Any = function.call(*new_function_args, **function.default_kwargs)
-				
-				if result is not None:
-					print("result:", result)
-		
-		return found_function
-	return False
+registered_functions: dict[str, Function] = { }
 
 
-def quick_run(functions: list[Function]) -> None:
-	function_name: str = sys.argv[1] if len(sys.argv) > 1 else ""
-	function_args: list[str] = sys.argv[2:]
-	
-	if run_function(functions, function_name, *function_args):
-		return
-	
-	print(f"cannot find function '{function_name}', available are:")
-	for f in functions:
-		print(f"\t{f.name} (args: {f.min_args} to {f.max_args})")
+def cli(
+    name: str | None = None,
+    default_kwargs: dict[str, Any] = None,
+    force_min: int | None = None,
+    force_max: int | None = None
+) -> Any:
+    if default_kwargs is None:
+        default_kwargs = { }
+    
+    if callable(name):
+        func_ = name
+        name = func_.__name__
+    else:
+        func_ = None
+    
+    def decorator(func):
+        function_name: str = name if name is not None else func.__name__
+        function_name = function_name.replace("_", "-")
+        
+        if function_name in registered_functions:
+            # TODO: change this to a good error
+            raise KeyError(f"a function with the name '{function_name}' has already been registered")
+        
+        sig: Signature = inspect.signature(func)
+        
+        min_args: int = 0
+        max_args: int = 0
+        
+        # the parameter kind is basically useless
+        # basically every parameter is POSITIONAL_OR_KEYWORD
+        
+        for param in sig.parameters.values():
+            if param.kind == Parameter.VAR_POSITIONAL:
+                max_args = Function.MAX_ARG_COUNT
+                continue
+            
+            if param.kind not in (Parameter.POSITIONAL_OR_KEYWORD, Parameter.POSITIONAL_ONLY):
+                continue
+            
+            if param.default is inspect.Parameter.empty:
+                # required (your "positional")
+                min_args += 1
+            
+            max_args += 1
+        
+        if max_args > Function.MAX_ARG_COUNT:
+            max_args = Function.MAX_ARG_COUNT
+        if force_min is not None:
+            min_args = force_min
+        if force_max is not None:
+            max_args = force_max
+        
+        registered_functions[function_name] = Function(func, min_args, max_args, default_kwargs)
+        
+        return func
+    
+    if callable(func_):
+        return decorator(func_)
+    
+    return decorator
+
+
+def run_function_2(function_name: str, *args: str) -> bool:
+    function_name: str = function_name.lower()
+    function_args: list[str] = list(args)
+    
+    new_function_args: list[str | int | float] = convert_if_possible(function_args)
+    
+    if function_name not in registered_functions:
+        return False
+    
+    function: Function = registered_functions[function_name]
+    
+    if not (function.min_args <= len(new_function_args) <= function.max_args):
+        print(
+            "args are bad, expected",
+            function.min_args,
+            "to",
+            function.max_args,
+            "got",
+            len(new_function_args)
+        )
+        return False
+    
+    result: Any = function.method(*new_function_args, **function.default_kwargs)
+    
+    if result is not None:
+        print("result:", result)
+    
+    return True
+
+
+def quick_run_2() -> None:
+    if len(sys.argv) <= 1:
+        print("no function name given")
+        exit(1)
+    
+    function_name: str = sys.argv[1] if len(sys.argv) > 1 else ""
+    function_args: list[str] = sys.argv[2:]
+    
+    if run_function_2(function_name, *function_args):
+        return
+    
+    print(f"cannot find function '{function_name}', available are:")
+    for name, info in sorted(registered_functions.items()):
+        print(f"\t{name} (args: {info.min_args} to {info.max_args})")
+    exit(1)
