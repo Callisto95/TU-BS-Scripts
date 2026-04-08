@@ -143,9 +143,15 @@ def run_function_2(function_name: str, *args: str) -> bool:
     return True
 
 
+def list_functions() -> None:
+    for name, info in sorted(registered_functions.items()):
+        print(f"\t{name} (args: {info.min_args} to {info.max_args})")
+
+
 def quick_run_2() -> None:
     if len(sys.argv) <= 1:
         print("no function name given")
+        list_functions()
         exit(1)
     
     function_name: str = sys.argv[1] if len(sys.argv) > 1 else ""
@@ -155,6 +161,5 @@ def quick_run_2() -> None:
         return
     
     print(f"cannot find function '{function_name}', available are:")
-    for name, info in sorted(registered_functions.items()):
-        print(f"\t{name} (args: {info.min_args} to {info.max_args})")
+    list_functions()
     exit(1)
