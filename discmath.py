@@ -6,7 +6,7 @@ from typing import Any, Generator
 
 from tabulate import tabulate
 
-from tu_bs_scripts.quick_cli import cli, Function, quick_run
+from tu_bs_scripts.quick_cli import cli, quick_run
 
 NO_DATA: str = "-"
 TABLE_FORMAT: str = "presto"
