@@ -6,7 +6,7 @@ from typing import Any, Generator
 
 from tabulate import tabulate
 
-from tu_bs_scripts.quick_cli import cli, Function, quick_run_2
+from tu_bs_scripts.quick_cli import cli, Function, quick_run
 
 NO_DATA: str = "-"
 TABLE_FORMAT: str = "presto"
@@ -361,4 +361,4 @@ def chinese_remainder(*remainder_mod: str) -> int:
 
 
 if __name__ == '__main__':
-    quick_run_2()
+    quick_run()
