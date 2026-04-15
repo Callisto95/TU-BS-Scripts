@@ -123,15 +123,11 @@ def run_function(function_name: str, *args: str) -> bool:
     function: Function = registered_functions[function_name]
     
     if not (function.min_args <= len(new_function_args) <= function.max_args):
-        print(
-            "args are bad, expected",
-            function.min_args,
-            "to",
-            function.max_args,
-            "got",
-            len(new_function_args)
-        )
-        return False
+        if function.min_args == function.max_args:
+            print(f"args are bad, expected {function.min_args} got {len(new_function_args)}")
+        else:
+            print(f"args are bad, expected {function.min_args} to {function.max_args} got {len(new_function_args)}")
+        return True
     
     result: Any = function.method(*new_function_args, **function.default_kwargs)
     

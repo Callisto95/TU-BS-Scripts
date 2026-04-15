@@ -1,10 +1,16 @@
 from math import ceil, log10
 
-from tu_bs_scripts.quick_cli import quick_run, cli
+from tabulate import tabulate
+
+from tu_bs_scripts.quick_cli import cli, quick_run
+
+TABLE_FORMAT: str = "presto"
 
 
 @cli
 def euklid_old(a: int, b: int) -> int:
+    data: list[tuple[int, int]] = []
+    
     if a == 0:
         return b
     while b != 0:
@@ -12,40 +18,46 @@ def euklid_old(a: int, b: int) -> int:
             a = a - b
         else:
             b = b - a
-        print(f"a: {a}, b: {b}")
+        data.append((a,b))
+    
+    print(tabulate(data, headers=("a", "b"), tablefmt=TABLE_FORMAT))
     return a
 
 
 @cli
 def euklid_modern(a: int, b: int) -> int:
+    data: list[tuple[int, int, int]] = []
+    
     while b != 0:
         h: int = a % b
         a = b
         b = h
-        print(f"a: {a}, b: {b}, mod {h}")
+        data.append((a, b, h))
+    
+    print(tabulate(data, headers=("a", "b", "mod"), tablefmt=TABLE_FORMAT))
     return a
 
 
 @cli
 def base_change(number: str | int, source_base: int, target_base: int) -> str:
+    data: list[tuple[int, int, int, int]] = []
     values: list[int] = []
     
     rest: int = int(str(number), source_base)
     if source_base != 10:
         print(f"necessary conversion: ({number}){source_base} to ({rest})10")
-    
-    # alignment helpers
-    length_rest: int = ceil(log10(rest))
-    length_target_base: int = ceil(log10(target_base))
+        print()
     
     while rest != 0:
         rest_save: int = rest
         rest, mod = divmod(rest, target_base)
-        print(f"{rest_save:>{length_rest}} / {target_base} = {rest:>{length_rest}} % {mod:>{length_target_base}}")
+        data.append((rest_save, target_base, rest, mod))
         values.append(mod)
     
+    print(tabulate(data, headers=("current", "/ base", "= div", "% mod"), tablefmt="plain"))
+    
     values.reverse()
-    if target_base < 10:
+    if target_base <= 10:
         # a number can be created nicely
         return "".join([str(value) for value in values])
     elif target_base == 16:
