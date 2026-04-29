@@ -48,14 +48,14 @@ registered_functions: dict[str, Function] = { }
 
 
 def cli(
-    name: str | None = None,
-    default_kwargs: dict[str, Any] = None,
+    name: str | Callable,
+    default_kwargs: dict[str, Any] | None = None,
     force_min: int | None = None,
-    force_max: int | None = None
+    force_max: int | None = None,
 ) -> Any:
     if (force_min is not None and force_min < 0) or (force_max is not None and force_max < 0):
         raise RuntimeError(
-            f"cannot use a value of less than 0 for overwrites. (min is set to {force_min}, max is set to {force_max})"
+            f"cannot use a value of less than 0 for overwrites. (min is set to {force_min}, max is set to {force_max})",
         )
     
     if default_kwargs is None:
@@ -67,7 +67,7 @@ def cli(
     else:
         func_ = None
     
-    def decorator(func):
+    def decorator(func) -> Callable:
         function_name: str = name if name is not None else func.__name__
         function_name = function_name.replace("_", "-")
         
@@ -112,7 +112,7 @@ def cli(
 
 
 def run_function(function_name: str, *args: str) -> bool:
-    function_name: str = function_name.lower()
+    function_name = function_name.lower()
     function_args: list[str] = list(args)
     
     new_function_args: list[str | int | float] = convert_if_possible(function_args)
@@ -129,7 +129,7 @@ def run_function(function_name: str, *args: str) -> bool:
             "to",
             function.max_args,
             "got",
-            len(new_function_args)
+            len(new_function_args),
         )
         return False
     
