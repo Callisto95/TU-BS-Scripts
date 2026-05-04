@@ -166,8 +166,8 @@ def ggt_extended(num1: int, num2: int, maximum_iterations: int = 100) -> tuple[i
             data,
             headers=["i", "ri", "qi", "si", "ti"],
             tablefmt=TABLE_FORMAT,
-            colalign=n_alignment(5, "right")
-        )
+            colalign=n_alignment(5, "right"),
+        ),
     )
     
     x: int = saved_si[iteration]
@@ -269,17 +269,9 @@ def prime_decomposition(number: int) -> dict[int, int]:
         while number % (prime := get_prime(i)) != 0:
             i += 1
         
-        number = number // prime
+        number //= prime
         
-        if prime in result:
-            result[prime] += 1
-        else:
-            result[prime] = 1
-        
-        # significantly faster for big primes
-        if is_prime(number):
-            result[number] = 1
-            break
+        result[prime] = result.get(prime, 0) + 1
     
     return result
 
