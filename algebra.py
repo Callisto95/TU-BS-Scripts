@@ -1,4 +1,4 @@
-from math import ceil, log10, sqrt
+from math import ceil, sqrt
 
 from tabulate import tabulate
 
@@ -18,7 +18,7 @@ def euklid_old(a: int, b: int) -> int:
             a = a - b
         else:
             b = b - a
-        data.append((a,b))
+        data.append((a, b))
     
     print(tabulate(data, headers=("a", "b"), tablefmt=TABLE_FORMAT))
     return a
@@ -70,18 +70,43 @@ def base_change(number: str | int, source_base: int, target_base: int) -> str:
 
 @cli("fermat-factor")
 def fermat_factorization(n: int) -> tuple[int, int]:
+    data: list[tuple[int, int]] = []
+    
     x: int = ceil(sqrt(n))
-    r: int = x**2 - n
-
+    r: int = x ** 2 - n
+    
+    data.append((x, r))
+    
     while not sqrt(r).is_integer():
         r = r + 2 * x + 1
         x = x + 1
-
+        
+        data.append((x, r))
+    
+    print(tabulate(data, headers=("x", "r"), tablefmt=TABLE_FORMAT, showindex=True))
+    
     y: int = int(sqrt(r))
-    a: int = x + y
-    b: int = x - y
+    
+    print("y =", y)
+    return x + y, x - y  # (a,b)
 
-    return a, b
+
+@cli("sieve")
+def sieve_of_eratosthenes(n: int) -> list[int]:
+    numbers: list[int] = list(range(2, n + 1))
+    primes: list[int] = []
+    
+    while len(numbers) > 0:
+        prime: int = numbers[0]
+        primes.append(prime)
+        
+        multiplicatives: list[int] = list(range(prime, n + 1, prime))
+        numbers = [number for number in numbers if number not in multiplicatives]
+        
+        print(tabulate([(f"current sieve: {prime}", multiplicatives), ("remaining numbers", numbers), ("primes", primes)], tablefmt="plain"))
+        print()
+    
+    return primes
 
 
 if __name__ == "__main__":

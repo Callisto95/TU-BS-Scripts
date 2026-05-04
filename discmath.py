@@ -304,7 +304,8 @@ def kgv(*numbers: int) -> int:
 
 
 @cli("chin")
-def chinese_remainder(*remainder_mod: str) -> int:
+@cli("chin-q", default_kwargs={ "show_ggt": False })
+def chinese_remainder(*remainder_mod: str, show_ggt: bool = True) -> int:
     length: int = len(remainder_mod)
     
     as_: list[int] = []
@@ -326,6 +327,7 @@ def chinese_remainder(*remainder_mod: str) -> int:
     indexed_print(*ms, unit="m")
     print("M:", big_m)
     
+    # big m(i) is all modulo multiplied together except the i-th one
     big_ms: list[int] = []
     
     for i in range(length):
@@ -338,9 +340,12 @@ def chinese_remainder(*remainder_mod: str) -> int:
     
     indexed_print(*big_ms, unit="M")
     
+    # 1 <= y(i) <= m(i)
+    # via M(i)y(i) === 1 mod m(i)
     ys: list[int] = []
     
-    Printer.enabled = False
+    # not too relevant, but still possible
+    Printer.enabled = show_ggt
     
     for i in range(length):
         s, _, _ = ggt_extended(big_ms[i], ms[i])
@@ -350,14 +355,79 @@ def chinese_remainder(*remainder_mod: str) -> int:
     
     indexed_print(*ys, unit="y")
     
+    # x = [ sum_(i)^(length) a(i)M(i)y(i) ] mod M
     sum_: int = 0
     for i in range(length):
         sum_ += as_[i] * big_ms[i] * ys[i]
     
     print("sum:", sum_)
-    sum_ %= big_m
     
-    return sum_
+    # x === sum mod M
+    return sum_ % big_m
+
+
+# given the name, should be in algebra.py, but it's too close to the discmath variant, so it stays here
+@cli("chin-alg")
+@cli("chin-alg-q", default_kwargs={ "show_ggt": False })
+def chinese_remainder_algebra(*remainder_mod: str, show_ggt: bool = True) -> int:
+    length: int = len(remainder_mod)
+    
+    as_: list[int] = []
+    ms: list[int] = []
+    
+    big_m: int = 1
+    for r in remainder_mod:
+        remainder, mod = r.split(":")
+        
+        remainder = int(remainder)
+        mod = int(mod)
+        
+        as_.append(remainder)
+        ms.append(mod)
+        
+        big_m *= mod
+    
+    indexed_print(*as_, unit="a")
+    indexed_print(*ms, unit="m")
+    print("M:", big_m)
+    
+    # big m(i) is all modulo multiplied together except the i-th one
+    big_ms: list[int] = []
+    
+    for i in range(length):
+        m: int = 1
+        for j in range(length):
+            if i == j:
+                continue
+            m *= ms[j]
+        big_ms.append(m)
+    
+    indexed_print(*big_ms, unit="M")
+    
+    # 1 <= y(i) <= m(i)
+    # via M(i)y(i) === 1 mod m(i)
+    es: list[int] = []
+    
+    # not too relevant, but still possible
+    Printer.enabled = show_ggt
+    
+    for i in range(length):
+        e, f, _ = ggt_extended(big_ms[i], ms[i])
+        es.append(e * big_ms[i])
+    
+    Printer.enabled = True
+    
+    indexed_print(*es, unit="e")
+    
+    # x = [ sum_(i)^(length) a(i)M(i)y(i) ] mod M
+    sum_: int = 0
+    for i in range(length):
+        sum_ += as_[i] * es[i]
+    
+    print("sum:", sum_)
+    print("sum in (mod M):")
+    
+    return sum_ % big_m
 
 
 if __name__ == '__main__':

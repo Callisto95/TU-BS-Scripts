@@ -68,7 +68,7 @@ def cli(
         func_ = None
     
     def decorator(func) -> Callable:
-        function_name: str = name if name is not None else func.__name__
+        function_name: str = name
         function_name = function_name.replace("_", "-")
         
         if function_name in registered_functions:
@@ -131,7 +131,7 @@ def run_function(function_name: str, *args: str) -> bool:
             "got",
             len(new_function_args),
         )
-        return False
+        return True
     
     result: Any = function.method(*new_function_args, **function.default_kwargs)
     
