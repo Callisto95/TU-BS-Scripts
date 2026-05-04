@@ -88,7 +88,13 @@ def fermat_factorization(n: int) -> tuple[int, int]:
     y: int = int(sqrt(r))
     
     print("y =", y)
-    return x + y, x - y  # (a,b)
+    
+    a: int = x + y
+    b: int = x - y
+    
+    print(f"verifying: {a} * {b} = {a * b}")
+    
+    return a, b
 
 
 @cli("sieve")
@@ -103,7 +109,16 @@ def sieve_of_eratosthenes(n: int) -> list[int]:
         multiplicatives: list[int] = list(range(prime, n + 1, prime))
         numbers = [number for number in numbers if number not in multiplicatives]
         
-        print(tabulate([(f"current sieve: {prime}", multiplicatives), ("remaining numbers", numbers), ("primes", primes)], tablefmt="plain"))
+        print(
+            tabulate(
+                [
+                    (f"current sieve: {prime}",multiplicatives),
+                    ("remaining numbers", numbers),
+                    ("primes", primes)
+                ],
+                tablefmt="plain",
+            ),
+        )
         print()
     
     return primes
