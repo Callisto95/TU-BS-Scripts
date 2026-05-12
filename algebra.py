@@ -1,5 +1,8 @@
-from math import ceil, sqrt
+from dataclasses import dataclass, field
+from itertools import batched
+from math import ceil, floor, log10, sqrt
 
+from colorama import Fore, Style
 from tabulate import tabulate
 
 from tu_bs_scripts.quick_cli import cli, quick_run
@@ -112,14 +115,63 @@ def sieve_of_eratosthenes(n: int) -> list[int]:
         print(
             tabulate(
                 [
-                    (f"current sieve: {prime}",multiplicatives),
+                    (f"current sieve: {prime}", multiplicatives),
                     ("remaining numbers", numbers),
-                    ("primes", primes)
+                    ("primes", primes),
                 ],
                 tablefmt="plain",
             ),
         )
         print()
+    
+    return primes
+
+
+@cli("sieve-colour")
+def sieve_of_eratosthenes(n: int) -> list[int]:
+    max_length: int = floor(log10(n)) + 1
+    
+    @dataclass
+    class FilteredNumber:
+        number: int
+        filtered: bool = field(default=False)
+    
+    numbers: list[FilteredNumber] = [FilteredNumber(n) for n in range(2, n + 1)]
+    primes: list[int] = []
+    
+    while len((current_numbers := list(filter(lambda x: not x.filtered, numbers)))) > 0:
+        prime: int = current_numbers[0].number
+        primes.append(prime)
+        
+        multiplicatives: list[int] = list(range(prime, n + 1, prime))
+        
+        print("current prime", prime)
+        
+        for line in batched([FilteredNumber(1, True)] + numbers, 10):
+            for number in line:
+                # 1 is always ignored
+                if number.number == 1:
+                    print(" " * (max_length + 1), end="")
+                    continue
+                
+                if number.number == prime:
+                    colour = Fore.YELLOW
+                elif number.number in primes:
+                    colour = Fore.BLUE
+                elif number.filtered and number.number in multiplicatives:
+                    colour = Fore.MAGENTA
+                elif number.number in multiplicatives:
+                    colour = Fore.RED
+                elif number.filtered:
+                    colour = Fore.MAGENTA
+                else:
+                    colour = ""
+                print(f"{colour}{number.number:{max_length}d}{Style.RESET_ALL}", end=" ")
+                
+                if number.number in multiplicatives:
+                    number.filtered = True
+            print()  # after each line
+        print()  # free line after each block
     
     return primes
 
